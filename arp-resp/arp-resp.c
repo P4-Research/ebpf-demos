@@ -31,13 +31,13 @@ static inline unsigned char determine_mac_addr(unsigned char *ar_tip)
     unsigned char h2_mac[6] = { 0x00 , 0x00, 0x00, 0x00, 0x00, 0x02 };
 
     unsigned char h1_ip[4] = { 0x0a, 0x00, 0x00, 0x001};
-    unsigned char h1_ip[4] = { 0x0a, 0x00, 0x00, 0x002};
-
-    if (h2_ip == ar_tip)
-        return h2_mac;
+    unsigned char h2_ip[4] = { 0x0a, 0x00, 0x00, 0x002};
 
     if (h1_ip == ar_tip)
         return h1_mac;
+
+    if (h2_ip == ar_tip)
+        return h2_mac;
 
     return 0;
 }
