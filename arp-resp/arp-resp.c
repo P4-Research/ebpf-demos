@@ -19,27 +19,26 @@ struct arphdr
 	unsigned char	ar_hln;		/* length of hardware address	*/
 	unsigned char	ar_pln;		/* length of protocol address	*/
 	__be16		ar_op;		/* ARP opcode (command)		*/
-	unsigned char		ar_sha[ETH_ALEN];	/* sender hardware address	*/
-	unsigned char		ar_sip[4];		/* sender IP address		*/
-	unsigned char		ar_tha[ETH_ALEN];	/* target hardware address	*/
-	unsigned char		ar_tip[4];		/* target IP address		*/
+	unsigned char	ar_sha[6];	/* sender hardware address	*/
+	unsigned char	ar_sip[4];		/* sender IP address		*/
+	unsigned char	ar_tha[6];	/* target hardware address	*/
+	unsigned char	ar_tip[4];		/* target IP address		*/
 };
 
-static inline unsigned char determine_mac_addr(unsigned char *ar_tip)
+static inline void determine_mac_addr(unsigned char *src_mac, unsigned char *ar_tip)
 {
-    unsigned char h1_mac[6] = { 0x00 , 0x00, 0x00, 0x00, 0x00, 0x01 };
-    unsigned char h2_mac[6] = { 0x00 , 0x00, 0x00, 0x00, 0x00, 0x02 };
+    unsigned char h1_mac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    unsigned char h2_mac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
 
-    unsigned char h1_ip[4] = { 0x0a, 0x00, 0x00, 0x001};
-    unsigned char h2_ip[4] = { 0x0a, 0x00, 0x00, 0x002};
+    unsigned char h1_ip[4] = { 0x0a, 0x00, 0x00, 0x01};
+    unsigned char h2_ip[4] = { 0x0a, 0x00, 0x00, 0x02};
 
-    if (h1_ip == ar_tip)
-        return h1_mac;
+    if (__builtin_memcmp(h2_ip, ar_tip, 4) == 0)
+        __builtin_memcpy(src_mac, h2_mac, 6);
 
-    if (h2_ip == ar_tip)
-        return h2_mac;
+    if (__builtin_memcmp(h1_ip, ar_tip, 4) == 0)
+	__builtin_memcpy(src_mac, h1_mac, 6);
 
-    return 0;
 }
 
 static inline void construct_arp_reply(void *data, void *src_mac, void *dst_mac, void *sender_ip, void *target_ip)
@@ -88,10 +87,9 @@ int xdp_arp_resp_prog(struct xdp_md *ctx) {
         __u16 arp_opcode = arph->ar_op;
         if (arp_opcode == htons(ARPOP_REQUEST)) {
 
-             unsigned char src_mac = determine_mac_addr(arph->ar_tip);
+             unsigned char src_mac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-             if (src_mac == 0)
-                return XDP_ABORTED;
+	     determine_mac_addr(src_mac, arph->ar_tip);
 
              construct_arp_reply(data, &src_mac, &h_source, &arph->ar_tip, &arph->ar_sip);
 
