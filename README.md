@@ -27,3 +27,7 @@ In order to run a demo please follow below steps:
         graphviz`
  
 3. Install iproute2. Instructions are in https://cilium.readthedocs.io/en/v1.3/bpf/ .
+    This package is needed for TC hook. Provided in iproute2 repo install script 
+    does not copy all needed libraries to /usr/include. Let's do it by ourselves:
+    
+        sudo cp -r <path to iproute2>/iproute2/include /usr/include/iproute2
