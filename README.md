@@ -31,3 +31,6 @@ In order to run a demo please follow below steps:
     does not copy all needed libraries to /usr/include. Let's do it by ourselves:
     
         sudo cp -r <path to iproute2>/iproute2/include /usr/include/iproute2
+        
+    Or install package from Ubuntu repositories (not tested):
+        `sudo apt install iproute2`
